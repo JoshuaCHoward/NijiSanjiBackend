@@ -1,10 +1,20 @@
 from http import HTTPStatus
 
+import pytest
 from fastapi.testclient import TestClient
-
+import uuid
 from src.app.main import app
+from src.supabase import setup
 
 client = TestClient(app)
+
+
+@pytest.fixture(scope="module")
+def create_bucket_by_uuid_and_return_uuid_str():
+    bucket_uuid = str(uuid.uuid4())
+    # Get token.
+    setup.supabase_storage.create_bucket(bucket_uuid)
+    return bucket_uuid
 
 
 def test_index():
@@ -14,6 +24,9 @@ def test_index():
     response = client.get("/")
     assert response.status_code == HTTPStatus.OK
 
+
+def test_supabase_bucket(create_bucket_by_uuid_and_return_uuid_str):
+    assert setup.supabase_storage.get_bucket(create_bucket_by_uuid_and_return_uuid_str)
 #
 # @pytest.fixture(scope="module")
 # def api_token():
